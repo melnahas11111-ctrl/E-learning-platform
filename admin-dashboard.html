@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Learning Platform - Admin Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #FFC107;
+            --primary-dark: #FFB300;
+            --secondary: #1a1a1a;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #3b82f6;
+            --light: #f9fafb;
+            --dark: #111827;
+            --border: #e5e7eb;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+            color: #111827;
+            line-height: 1.6;
+        }
+
+        /* Header */
+        header {
+            background: white;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding: 1rem 2rem;
+        }
+
+        .header-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .logo-section img {
+            height: 50px;
+            width: auto;
+        }
+
+        .logo-text h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .logo-text p {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        .admin-section {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .admin-info {
+            text-align: right;
+        }
+
+        .admin-info p:first-child {
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .admin-info p:last-child {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        .logout-btn {
+            background: var(--danger);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
+        }
+
+        /* Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 0;
+            border-bottom: 2px solid var(--border);
+            margin-bottom: 2rem;
+            overflow-x: auto;
+        }
+
+        .tab {
+            padding: 1rem 1.5rem;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-weight: 500;
+            color: #6b7280;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+        }
+
+        .tab:hover {
+            color: var(--dark);
+        }
+
+        .tab.active {
+            color: var(--primary-dark);
+            border-bottom-color: var(--primary);
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border-top: 4px solid var(--primary);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transform: translateY(-4px);
+        }
+
+        .stat-card.blue {
+            border-top-color: var(--info);
+        }
+
+        .stat-card.green {
+            border-top-color: var(--success);
+        }
+
+        .stat-card.purple {
+            border-top-color: #8b5cf6;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: var(--dark);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        /* Form */
+        .form-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.1);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        /* User Card */
+        .user-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .user-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 0.25rem;
+        }
+
+        .user-email {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        .user-position {
+            font-size: 0.75rem;
+            color: #9ca3af;
+            margin-top: 0.25rem;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .status-active {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-inactive {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        /* QR Token Card */
+        .token-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .token-code {
+            font-family: 'Courier New', monospace;
+            background: #f3f4f6;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+            word-break: break-all;
+            color: var(--dark);
+        }
+
+        .token-status {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 1rem;
+        }
+
+        .token-available {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .token-used {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .token-info {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        /* Backup Log */
+        .backup-item {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .backup-info h4 {
+            color: var(--dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .backup-info p {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        .backup-status {
+            text-align: right;
+        }
+
+        .backup-status-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .status-completed {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-in-progress {
+            background: #dbeafe;
+            color: #0c2d6b;
+        }
+
+        .status-failed {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--dark);
+            color: white;
+            text-align: center;
+            padding: 2rem;
+            margin-top: 4rem;
+        }
+
+        footer p {
+            margin: 0.5rem 0;
+        }
+
+        footer .company {
+            font-size: 0.875rem;
+            color: #d1d5db;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-container {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .admin-section {
+                flex-direction: column;
+                gap: 1rem;
+                width: 100%;
+            }
+
+            .admin-info {
+                text-align: center;
+            }
+
+            .user-card,
+            .backup-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+
+            .status-badge,
+            .backup-status {
+                text-align: left;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                padding: 1rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Alert */
+        .alert {
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border-left: 4px solid var(--success);
+        }
+
+        .alert-danger {
+            background: #fee2e2;
+            color: #991b1b;
+            border-left: 4px solid var(--danger);
+        }
+
+        .alert-info {
+            background: #dbeafe;
+            color: #0c2d6b;
+            border-left: 4px solid var(--info);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="header-container">
+            <div class="logo-section">
+                <img src="https://via.placeholder.com/50x50?text=ACES" alt="ACES Logo">
+                <div class="logo-text">
+                    <h1>Admin Dashboard</h1>
+                    <p>Platform Management</p>
+                </div>
+            </div>
+            <div class="admin-section">
+                <div class="admin-info">
+                    <p>Fatima Al-Dosari</p>
+                    <p>Administrator</p>
+                </div>
+                <button class="logout-btn" onclick="logout()">🚪 Logout</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Alert Message -->
+        <div id="alertBox" class="alert alert-success" style="display: none;"></div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('dashboard')">📊 Dashboard</button>
+            <button class="tab" onclick="switchTab('users')">👥 Users</button>
+            <button class="tab" onclick="switchTab('qr')">🔗 QR Enrollment</button>
+            <button class="tab" onclick="switchTab('backups')">💾 Backups</button>
+        </div>
+
+        <!-- Dashboard Tab -->
+        <div id="dashboard" class="tab-content active">
+            <div class="stats-grid">
+                <div class="stat-card blue">
+                    <div class="stat-label">Total Users</div>
+                    <div class="stat-value">152</div>
+                </div>
+                <div class="stat-card green">
+                    <div class="stat-label">Courses Completed</div>
+                    <div class="stat-value">87</div>
+                </div>
+                <div class="stat-card purple">
+                    <div class="stat-label">Pass Rate</div>
+                    <div class="stat-value">92%</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Active Assessments</div>
+                    <div class="stat-value">24</div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>📈 Recent Activity</h3>
+                <div style="margin-top: 1rem;">
+                    <p style="margin-bottom: 0.5rem;">✓ <strong>Ahmed Al-Mansouri</strong> completed Module 7 (Advanced Topics)</p>
+                    <p style="margin-bottom: 0.5rem;">✓ <strong>Fatima Al-Dosari</strong> passed Module 6 Assessment (91%)</p>
+                    <p style="margin-bottom: 0.5rem;">✓ <strong>Mohammed Al-Kaabi</strong> started Course Training</p>
+                    <p style="margin-bottom: 0.5rem;">✓ <strong>Noor Al-Sulaiti</strong> completed 5 modules (62%)</p>
+                    <p style="margin-bottom: 0.5rem;">✓ <strong>System Backup</strong> completed successfully - 4.2 GB</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Users Tab -->
+        <div id="users" class="tab-content">
+            <div style="margin-bottom: 1.5rem;">
+                <button class="btn btn-primary" onclick="toggleUserForm()">+ Create New User</button>
+            </div>
+
+            <div id="userForm" class="form-section" style="display: none;">
+                <h3>Create New User</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" placeholder="user@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" placeholder="Full Name">
+                    </div>
+                    <div class="form-group">
+                        <label>Position</label>
+                        <input type="text" placeholder="Food Inspector">
+                    </div>
+                    <div class="form-group">
+                        <label>Organization</label>
+                        <input type="text" placeholder="Ministry of Public Health">
+                    </div>
+                </div>
+                <button class="btn btn-success" onclick="createUser()">Create User</button>
+            </div>
+
+            <div>
+                <div class="user-card">
+                    <div>
+                        <div class="user-name">Ahmed Al-Mansouri</div>
+                        <div class="user-email">ahmed.mansouri@moph.gov.qa</div>
+                        <div class="user-position">Food Inspector - Ministry of Public Health</div>
+                    </div>
+                    <div class="status-badge status-active">Active</div>
+                </div>
+
+                <div class="user-card">
+                    <div>
+                        <div class="user-name">Fatima Al-Dosari</div>
+                        <div class="user-email">fatima.dosari@moph.gov.qa</div>
+                        <div class="user-position">Senior Inspector - Ministry of Public Health</div>
+                    </div>
+                    <div class="status-badge status-active">Active</div>
+                </div>
+
+                <div class="user-card">
+                    <div>
+                        <div class="user-name">Mohammed Al-Kaabi</div>
+                        <div class="user-email">mohammed.kaabi@moph.gov.qa</div>
+                        <div class="user-position">Food Safety Officer</div>
+                    </div>
+                    <div class="status-badge status-active">Active</div>
+                </div>
+
+                <div class="user-card">
+                    <div>
+                        <div class="user-name">Noor Al-Sulaiti</div>
+                        <div class="user-email">noor.sulaiti@moph.gov.qa</div>
+                        <div class="user-position">Trainee Inspector</div>
+                    </div>
+                    <div class="status-badge status-active">Active</div>
+                </div>
+
+                <div class="user-card">
+                    <div>
+                        <div class="user-name">Hana Al-Shammari</div>
+                        <div class="user-email">hana.shammari@moph.gov.qa</div>
+                        <div class="user-position">Lab Technician</div>
+                    </div>
+                    <div class="status-badge status-inactive">Inactive</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- QR Tab -->
+        <div id="qr" class="tab-content">
+            <div style="margin-bottom: 1.5rem;">
+                <button class="btn btn-primary" onclick="generateQRToken()">+ Generate QR Token</button>
+            </div>
+
+            <div class="token-card">
+                <div class="token-status token-available">Available (Not Used)</div>
+                <div class="token-info">Token ID:</div>
+                <div class="token-code">550e8400-e29b-41d4-a716-446655440001</div>
+                <div class="token-info">Expires: June 5, 2026</div>
+            </div>
+
+            <div class="token-card">
+                <div class="token-status token-available">Available (Not Used)</div>
+                <div class="token-info">Token ID:</div>
+                <div class="token-code">550e8400-e29b-41d4-a716-446655440002</div>
+                <div class="token-info">Expires: June 10, 2026</div>
+            </div>
+
+            <div class="token-card">
+                <div class="token-status token-used">Used</div>
+                <div class="token-info">Token ID:</div>
+                <div class="token-code">550e8400-e29b-41d4-a716-446655440000</div>
+                <div class="token-info">Used by: Ahmed Al-Mansouri on May 20, 2026</div>
+                <div class="token-info">Expires: June 1, 2026</div>
+            </div>
+
+            <div class="token-card">
+                <div class="token-status token-used">Used</div>
+                <div class="token-info">Token ID:</div>
+                <div class="token-code">550e8400-e29b-41d4-a716-446655440003</div>
+                <div class="token-info">Used by: Fatima Al-Dosari on May 21, 2026</div>
+                <div class="token-info">Expires: June 2, 2026</div>
+            </div>
+        </div>
+
+        <!-- Backups Tab -->
+        <div id="backups" class="tab-content">
+            <div style="margin-bottom: 1.5rem;">
+                <button class="btn btn-primary" onclick="triggerBackup()">⚡ Backup Now</button>
+            </div>
+
+            <div class="backup-item">
+                <div class="backup-info">
+                    <h4>Full Database Backup</h4>
+                    <p>May 6, 2026 - 02:00 AM</p>
+                </div>
+                <div class="backup-status">
+                    <div class="backup-status-badge status-completed">Completed</div>
+                    <div class="token-info">Size: 4.2 GB</div>
+                </div>
+            </div>
+
+            <div class="backup-item">
+                <div class="backup-info">
+                    <h4>Incremental Backup</h4>
+                    <p>May 6, 2026 - 08:00 AM</p>
+                </div>
+                <div class="backup-status">
+                    <div class="backup-status-badge status-completed">Completed</div>
+                    <div class="token-info">Size: 256 MB</div>
+                </div>
+            </div>
+
+            <div class="backup-item">
+                <div class="backup-info">
+                    <h4>Full Database Backup</h4>
+                    <p>May 5, 2026 - 02:00 AM</p>
+                </div>
+                <div class="backup-status">
+                    <div class="backup-status-badge status-completed">Completed</div>
+                    <div class="token-info">Size: 4.1 GB</div>
+                </div>
+            </div>
+
+            <div class="backup-item">
+                <div class="backup-info">
+                    <h4>Full Database Backup</h4>
+                    <p>May 4, 2026 - 02:00 AM</p>
+                </div>
+                <div class="backup-status">
+                    <div class="backup-status-badge status-completed">Completed</div>
+                    <div class="token-info">Size: 4.0 GB</div>
+                </div>
+            </div>
+
+            <div class="backup-item">
+                <div class="backup-info">
+                    <h4>Incremental Backup</h4>
+                    <p>May 3, 2026 - 08:00 PM</p>
+                </div>
+                <div class="backup-status">
+                    <div class="backup-status-badge status-failed">Failed</div>
+                    <div class="token-info">Error: Storage quota exceeded</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p style="font-weight: 600;">E-Learning Platform © 2024 ACES Company</p>
+        <p class="company">Qatar Ministry of Public Health | Food Sample Collection Training</p>
+    </footer>
+
+    <script>
+        function switchTab(tabName) {
+            // Hide all tab contents
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(content => content.classList.remove('active'));
+
+            // Remove active class from all tabs
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+        }
+
+        function toggleUserForm() {
+            const form = document.getElementById('userForm');
+            form.style.display = form.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function createUser() {
+            showAlert('success', '✓ User created successfully!');
+            document.getElementById('userForm').style.display = 'none';
+        }
+
+        function generateQRToken() {
+            showAlert('success', '✓ QR token generated successfully!');
+        }
+
+        function triggerBackup() {
+            showAlert('success', '⚡ Backup initiated! This may take a few minutes...');
+        }
+
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                alert('You have been logged out successfully!');
+                // In real app: window.location.href = '/login';
+            }
+        }
+
+        function showAlert(type, message) {
+            const alertBox = document.getElementById('alertBox');
+            alertBox.textContent = message;
+            alertBox.className = `alert alert-${type}`;
+            alertBox.style.display = 'block';
+            
+            setTimeout(() => {
+                alertBox.style.display = 'none';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
