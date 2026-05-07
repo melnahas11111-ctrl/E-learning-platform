@@ -1,0 +1,30 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Trainees - read by anyone with code, write by admin only
+    match /trainees/{traineeId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    
+    // Tests - read by anyone, write by admin only
+    match /tests/{testId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+      
+      match /questions/{questionId} {
+        allow read: if true;
+        allow write: if request.auth != null;
+      }
+    }
+    
+    // Progress - trainees can read/write their own, admin can read all
+    match /progress/{progressId} {
+      allow read: if true;
+      allow create: if true;
+      allow update: if true;
+      allow delete: if request.auth != null;
+    }
+  }
+}
