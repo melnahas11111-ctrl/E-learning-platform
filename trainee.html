@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ACES - بوابة المتدرب</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
+body { font-family: 'Tajawal', sans-serif; background: #f0f4f8; }
+.gradient-bg { background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 60%, #f5a800 100%); }
+.aces-btn { background: linear-gradient(135deg, #1a1a1a, #f5a800); transition: opacity 0.2s; }
+.aces-btn:hover { opacity: 0.85; }
+.question-card { animation: fadeIn 0.4s ease; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+.timer-warning { color: #ef4444; animation: pulse 1s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="gradient-bg text-white shadow-xl">
+  <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+    <div class="flex items-center gap-3">
+      <div class="bg-white rounded-xl px-3 py-1.5 shadow">
+        <img src="logo.jpg" alt="ACES" style="height:42px;width:auto;object-fit:contain">
+      </div>
+      <div>
+        <h1 class="text-base font-bold">منصة ACES التدريبية</h1>
+        <p class="text-xs opacity-75">ISO 2859-1:1999 — وزارة الصحة</p>
+      </div>
+    </div>
+    <div id="traineeInfo" class="hidden flex items-center gap-2 bg-white bg-opacity-15 rounded-lg px-3 py-1.5">
+      <div class="w-7 h-7 bg-yellow-400 rounded-full flex items-center justify-center text-black font-bold text-sm" id="traineeInitial">م</div>
+      <span class="text-sm font-medium" id="traineeName">-</span>
+    </div>
+  </div>
+</header>
+
+<!-- Scan / Login Screen -->
+<div id="scanScreen" class="min-h-screen flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md text-center">
+    <div class="text-6xl mb-4">📱</div>
+    <h2 class="text-2xl font-bold mb-2">بوابة المتدرب</h2>
+    <p class="text-gray-500 text-sm mb-6">أدخل رمز المتدرب للدخول إلى اختباراتك</p>
+    <div class="space-y-3">
+      <input type="text" id="traineeCodeInput" placeholder="أدخل رمز المتدرب (مثال: T001)" 
+        class="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-center text-lg font-bold focus:border-yellow-400 outline-none">
+      <button onclick="loginTrainee()" class="w-full aces-btn text-white py-3 rounded-xl font-bold text-lg">
+        🚀 دخول
+      </button>
+    </div>
+    <p class="text-xs text-gray-400 mt-4">أو امسح الـ QR Code الخاص بك</p>
+    <div id="loginError" class="hidden mt-3 bg-red-50 text-red-600 rounded-xl p-3 text-sm"></div>
+  </div>
+</div>
+
+<!-- Trainee Dashboard -->
+<div id="traineeDashboard" class="hidden container mx-auto px-4 py-6">
+
+  <!-- Welcome Card -->
+  <div class="bg-white rounded-2xl shadow p-6 mb-6 flex items-center gap-4">
+    <div class="w-16 h-16 bg-yellow-400 rounded-2xl flex items-center justify-center text-3xl font-bold text-black" id="dashInitial">م</div>
+    <div class="flex-1">
+      <h2 class="text-xl font-bold" id="dashName">-</h2>
+      <p class="text-gray-500 text-sm" id="dashDept">-</p>
+      <div class="flex gap-4 mt-2">
+        <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-semibold" id="dashStatus">نشط</span>
+        <span class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-semibold" id="dashProgress">التقدم: 0%</span>
+      </div>
+    </div>
+    <div class="text-center">
+      <div class="text-3xl font-bold text-yellow-500" id="dashScore">-</div>
+      <div class="text-xs text-gray-400">أعلى نتيجة</div>
+    </div>
+  </div>
+
+  <!-- Available Tests -->
+  <h3 class="font-bold text-lg mb-4 flex items-center gap-2"><span class="text-yellow-500">📝</span> الاختبارات المتاحة</h3>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6" id="testsList">
+    <div class="text-center py-8 text-gray-400">جاري التحميل...</div>
+  </div>
+
+  <!-- Completed Tests -->
+  <h3 class="font-bold text-lg mb-4 flex items-center gap-2"><span class="text-green-500">✅</span> الاختبارات المكتملة</h3>
+  <div class="bg-white rounded-2xl shadow p-4" id="completedTestsList">
+    <p class="text-gray-400 text-center text-sm py-4">لا توجد اختبارات مكتملة بعد</p>
+  </div>
+</div>
+
+<!-- Exam Screen -->
+<div id="examScreen" class="hidden">
+  <!-- Exam Header -->
+  <div class="bg-white shadow sticky top-0 z-40">
+    <div class="container mx-auto px-4 py-3">
+      <div class="flex justify-between items-center">
+        <div>
+          <h2 class="font-bold text-lg" id="examTitle">الاختبار</h2>
+          <p class="text-xs text-gray-500" id="examProgress">السؤال 1 من 20</p>
+        </div>
+        <div class="flex items-center gap-4">
+          <div class="text-center">
+            <div class="text-2xl font-bold" id="examTimer">30:00</div>
+            <div class="text-xs text-gray-400">الوقت المتبقي</div>
+          </div>
+          <button onclick="pauseExam()" class="bg-orange-100 text-orange-700 px-3 py-2 rounded-xl text-sm font-semibold hover:bg-orange-200 transition">
+            ⏸️ إيقاف مؤقت
+          </button>
+        </div>
+      </div>
+      <!-- Progress Bar -->
+      <div class="w-full bg-gray-100 rounded-full h-2 mt-3">
+        <div id="examProgressBar" class="bg-yellow-500 h-2 rounded-full transition-all duration-500" style="width:0%"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Question Area -->
+  <div class="container mx-auto px-4 py-6 max-w-2xl">
+    <div id="questionCard" class="question-card bg-white rounded-2xl shadow-lg p-6 mb-4">
+      <div class="flex items-start gap-3 mb-6">
+        <span class="bg-yellow-400 text-black font-bold rounded-xl w-10 h-10 flex items-center justify-center shrink-0" id="questionNumber">1</span>
+        <p class="text-lg font-medium leading-relaxed" id="questionText">السؤال هنا...</p>
+      </div>
+      <div class="space-y-3" id="answersContainer"></div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="flex gap-3">
+      <button onclick="prevQuestion()" id="prevBtn" class="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-semibold hover:bg-gray-200 transition disabled:opacity-30">
+        ◀ السابق
+      </button>
+      <button onclick="nextQuestion()" id="nextBtn" class="flex-1 aces-btn text-white py-3 rounded-xl font-semibold">
+        التالي ▶
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Results Screen -->
+<div id="resultsScreen" class="hidden container mx-auto px-4 py-8 max-w-2xl">
+  <div class="bg-white rounded-2xl shadow-xl p-8 text-center">
+    <div class="text-7xl mb-4" id="resultEmoji">🎯</div>
+    <h2 class="text-3xl font-bold mb-2" id="resultTitle">نتيجة الاختبار</h2>
+    <div class="text-6xl font-bold text-yellow-500 my-6" id="resultScore">0%</div>
+    <div class="grid grid-cols-3 gap-4 mb-6">
+      <div class="bg-green-50 rounded-xl p-3">
+        <div class="text-2xl font-bold text-green-600" id="correctCount">0</div>
+        <div class="text-xs text-gray-500">إجابات صحيحة</div>
+      </div>
+      <div class="bg-red-50 rounded-xl p-3">
+        <div class="text-2xl font-bold text-red-500" id="wrongCount">0</div>
+        <div class="text-xs text-gray-500">إجابات خاطئة</div>
+      </div>
+      <div class="bg-blue-50 rounded-xl p-3">
+        <div class="text-2xl font-bold text-blue-500" id="timeTaken">0</div>
+        <div class="text-xs text-gray-500">دقيقة</div>
+      </div>
+    </div>
+    <p class="text-gray-600 mb-6" id="resultMessage">-</p>
+    <button onclick="backToDashboard()" class="w-full aces-btn text-white py-3 rounded-xl font-bold text-lg">
+      🏠 العودة للرئيسية
+    </button>
+  </div>
+</div>
+
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+// ===== FIREBASE CONFIG - استبدل بقيمك =====
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// ===== STATE =====
+let currentTrainee = null;
+let currentTest = null;
+let currentQuestions = [];
+let currentAnswers = {};
+let currentQuestionIndex = 0;
+let timerInterval = null;
+let timeRemaining = 0;
+let examStartTime = null;
+
+// ===== LOGIN =====
+window.loginTrainee = async function() {
+  const code = document.getElementById('traineeCodeInput').value.trim().toUpperCase();
+  if (!code) return showError('أدخل رمز المتدرب');
+
+  try {
+    const traineeRef = doc(db, 'trainees', code);
+    const traineeSnap = await getDoc(traineeRef);
+
+    if (!traineeSnap.exists()) {
+      showError('رمز المتدرب غير موجود. تواصل مع المدرب.');
+      return;
+    }
+
+    currentTrainee = { id: code, ...traineeSnap.data() };
+    showTraineeDashboard();
+  } catch(e) {
+    showError('خطأ في الاتصال: ' + e.message);
+  }
+}
+
+function showError(msg) {
+  const el = document.getElementById('loginError');
+  el.textContent = msg;
+  el.classList.remove('hidden');
+}
+
+// ===== DASHBOARD =====
+async function showTraineeDashboard() {
+  document.getElementById('scanScreen').classList.add('hidden');
+  document.getElementById('traineeDashboard').classList.remove('hidden');
+  document.getElementById('traineeInfo').classList.remove('hidden');
+
+  const t = currentTrainee;
+  document.getElementById('traineeName').textContent = t.name;
+  document.getElementById('dashName').textContent = t.name;
+  document.getElementById('dashDept').textContent = t.department || '';
+  document.getElementById('dashInitial').textContent = t.name[0];
+  document.getElementById('traineeInitial').textContent = t.name[0];
+
+  // Load tests
+  await loadTests();
+  await loadCompletedTests();
+}
+
+async function loadTests() {
+  const container = document.getElementById('testsList');
+  container.innerHTML = '<div class="text-center text-gray-400 py-4">جاري التحميل...</div>';
+
+  try {
+    const testsSnap = await getDocs(collection(db, 'tests'));
+    const tests = [];
+    testsSnap.forEach(d => tests.push({ id: d.id, ...d.data() }));
+
+    if (tests.length === 0) {
+      container.innerHTML = '<p class="text-gray-400 text-center col-span-2 py-8">لا توجد اختبارات متاحة حالياً</p>';
+      return;
+    }
+
+    container.innerHTML = '';
+    for (const test of tests) {
+      // Check if trainee has approval or existing progress
+      const progressRef = doc(db, 'progress', currentTrainee.id + '_' + test.id);
+      const progressSnap = await getDoc(progressRef);
+      const progress = progressSnap.exists() ? progressSnap.data() : null;
+
+      const isCompleted = progress?.status === 'completed';
+      const isInProgress = progress?.status === 'in_progress';
+      const isApproved = test.requiresApproval ? (progress?.approved === true) : true;
+      const canStart = !isCompleted && isApproved;
+
+      const card = document.createElement('div');
+      card.className = 'bg-white rounded-2xl shadow p-5 border-2 ' +
+        (isCompleted ? 'border-green-300' : isInProgress ? 'border-yellow-300' : 'border-gray-200');
+
+      const btnColor = isCompleted ? 'bg-gray-300 text-gray-500 cursor-not-allowed' :
+        !isApproved ? 'bg-gray-300 text-gray-500 cursor-not-allowed' :
+        isInProgress ? 'bg-yellow-500 text-white hover:bg-yellow-600' : 'aces-btn text-white';
+
+      const btnText = isCompleted ? '✅ مكتمل' :
+        !isApproved ? '🔒 يتطلب موافقة المدرب' :
+        isInProgress ? '▶ متابعة من حيث توقفت' : '🚀 بدء الاختبار';
+
+      const progressPct = isInProgress ? Math.round((progress.currentQuestion / (progress.totalQuestions||1)) * 100) : 0;
+
+      card.innerHTML = `
+        <div class="flex justify-between items-start mb-3">
+          <div>
+            <h4 class="font-bold">${test.title}</h4>
+            <p class="text-xs text-gray-500 mt-1">${test.description || ''}</p>
+          </div>
+          <span class="bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full text-xs font-bold">${test.questionsCount || 0} سؤال</span>
+        </div>
+        <div class="flex gap-3 text-xs text-gray-500 mb-4">
+          <span>⏱️ ${test.duration || 30} دقيقة</span>
+          <span>📊 درجة النجاح: ${test.passingScore || 70}%</span>
+        </div>
+        ${isInProgress ? `
+        <div class="mb-3">
+          <div class="flex justify-between text-xs mb-1"><span class="text-yellow-600 font-semibold">متابعة من السؤال ${progress.currentQuestion}</span><span>${progressPct}%</span></div>
+          <div class="w-full bg-gray-100 rounded-full h-2"><div class="bg-yellow-500 h-2 rounded-full" style="width:${progressPct}%"></div></div>
+        </div>` : ''}
+        <button onclick="startTest('${test.id}')" ${!canStart ? 'disabled' : ''}
+          class="w-full py-2.5 rounded-xl font-semibold text-sm transition ${btnColor}">
+          ${btnText}
+        </button>
+      `;
+      container.appendChild(card);
+    }
+  } catch(e) {
+    container.innerHTML = '<p class="text-red-400 text-center">خطأ في تحميل الاختبارات</p>';
+  }
+}
+
+async function loadCompletedTests() {
+  const container = document.getElementById('completedTestsList');
+  const q = query(collection(db, 'progress'),
+    where('traineeId', '==', currentTrainee.id),
+    where('status', '==', 'completed'));
+  const snap = await getDocs(q);
+
+  if (snap.empty) return;
+
+  let html = '<div class="space-y-3">';
+  snap.forEach(d => {
+    const data = d.data();
+    const pct = data.score || 0;
+    const passed = pct >= (data.passingScore || 70);
+    html += `
+      <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+        <div>
+          <p class="font-semibold text-sm">${data.testTitle || 'اختبار'}</p>
+          <p class="text-xs text-gray-400">${data.completedAt ? new Date(data.completedAt.toDate()).toLocaleDateString('ar') : '-'}</p>
+        </div>
+        <div class="text-center">
+          <div class="text-xl font-bold ${passed ? 'text-green-600' : 'text-red-500'}">${pct}%</div>
+          <span class="text-xs ${passed ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'} px-2 py-0.5 rounded-full">${passed ? 'ناجح' : 'راسب'}</span>
+        </div>
+      </div>
+    `;
+    // Update best score
+    const best = document.getElementById('dashScore');
+    const current = parseInt(best.textContent) || 0;
+    if (pct > current) best.textContent = pct + '%';
+  });
+  html += '</div>';
+  container.innerHTML = html;
+  document.getElementById('dashProgress').textContent = 'مكتمل: ' + snap.size;
+}
+
+// ===== START TEST =====
+window.startTest = async function(testId) {
+  try {
+    const testSnap = await getDoc(doc(db, 'tests', testId));
+    if (!testSnap.exists()) return alert('الاختبار غير موجود');
+    currentTest = { id: testId, ...testSnap.data() };
+
+    // Load questions
+    const qSnap = await getDocs(collection(db, 'tests', testId, 'questions'));
+    currentQuestions = [];
+    qSnap.forEach(d => currentQuestions.push({ id: d.id, ...d.data() }));
+    currentQuestions.sort((a, b) => (a.order || 0) - (b.order || 0));
+
+    if (currentQuestions.length === 0) return alert('لا توجد أسئلة في هذا الاختبار');
+
+    // Check for existing progress
+    const progressRef = doc(db, 'progress', currentTrainee.id + '_' + testId);
+    const progressSnap = await getDoc(progressRef);
+
+    if (progressSnap.exists() && progressSnap.data().status === 'in_progress') {
+      const p = progressSnap.data();
+      currentAnswers = p.answers || {};
+      currentQuestionIndex = Math.max(0, (p.currentQuestion || 1) - 1);
+      timeRemaining = p.timeRemaining || (currentTest.duration * 60);
+    } else {
+      currentAnswers = {};
+      currentQuestionIndex = 0;
+      timeRemaining = (currentTest.duration || 30) * 60;
+      // Create progress record
+      await setDoc(progressRef, {
+        traineeId: currentTrainee.id,
+        traineeName: currentTrainee.name,
+        testId: testId,
+        testTitle: currentTest.title,
+        status: 'in_progress',
+        currentQuestion: 1,
+        totalQuestions: currentQuestions.length,
+        answers: {},
+        timeRemaining: timeRemaining,
+        passingScore: currentTest.passingScore || 70,
+        startedAt: serverTimestamp()
+      });
+    }
+
+    showExamScreen();
+  } catch(e) {
+    alert('خطأ: ' + e.message);
+  }
+}
+
+function showExamScreen() {
+  document.getElementById('traineeDashboard').classList.add('hidden');
+  document.getElementById('examScreen').classList.remove('hidden');
+  document.getElementById('examTitle').textContent = currentTest.title;
+  examStartTime = Date.now();
+  startTimer();
+  renderQuestion();
+}
+
+// ===== EXAM LOGIC =====
+function renderQuestion() {
+  const q = currentQuestions[currentQuestionIndex];
+  const total = currentQuestions.length;
+
+  document.getElementById('questionNumber').textContent = currentQuestionIndex + 1;
+  document.getElementById('questionText').textContent = q.text;
+  document.getElementById('examProgress').textContent = `السؤال ${currentQuestionIndex + 1} من ${total}`;
+  document.getElementById('examProgressBar').style.width = ((currentQuestionIndex + 1) / total * 100) + '%';
+
+  document.getElementById('prevBtn').disabled = currentQuestionIndex === 0;
+  const isLast = currentQuestionIndex === total - 1;
+  document.getElementById('nextBtn').textContent = isLast ? '✅ إنهاء الاختبار' : 'التالي ▶';
+
+  const container = document.getElementById('answersContainer');
+  container.innerHTML = '';
+  const savedAnswer = currentAnswers[q.id];
+
+  (q.options || []).forEach((opt, i) => {
+    const isSelected = savedAnswer === i;
+    const div = document.createElement('div');
+    div.className = `p-4 rounded-xl border-2 cursor-pointer transition ${isSelected ? 'border-yellow-500 bg-yellow-50' : 'border-gray-200 hover:border-yellow-300 hover:bg-yellow-50'}`;
+    div.innerHTML = `<div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center shrink-0 font-bold ${isSelected ? 'bg-yellow-500 border-yellow-500 text-white' : 'border-gray-300 text-gray-500'}">
+        ${String.fromCharCode(65 + i)}
+      </div>
+      <span class="text-sm">${opt}</span>
+    </div>`;
+    div.onclick = () => selectAnswer(q.id, i);
+    container.appendChild(div);
+  });
+
+  // Animate
+  const card = document.getElementById('questionCard');
+  card.style.opacity = 0;
+  setTimeout(() => { card.style.opacity = 1; card.style.transition = 'opacity 0.3s'; }, 50);
+}
+
+window.selectAnswer = async function(questionId, optionIndex) {
+  currentAnswers[questionId] = optionIndex;
+  renderQuestion(); // Re-render to show selection
+
+  // Save progress to Firebase
+  await saveProgress();
+}
+
+async function saveProgress() {
+  try {
+    const progressRef = doc(db, 'progress', currentTrainee.id + '_' + currentTest.id);
+    await updateDoc(progressRef, {
+      answers: currentAnswers,
+      currentQuestion: currentQuestionIndex + 1,
+      timeRemaining: timeRemaining,
+      lastSaved: serverTimestamp()
+    });
+  } catch(e) { console.error('Save error:', e); }
+}
+
+window.nextQuestion = async function() {
+  const total = currentQuestions.length;
+  if (currentQuestionIndex < total - 1) {
+    currentQuestionIndex++;
+    await saveProgress();
+    renderQuestion();
+  } else {
+    // Finish exam
+    finishExam();
+  }
+}
+
+window.prevQuestion = async function() {
+  if (currentQuestionIndex > 0) {
+    currentQuestionIndex--;
+    renderQuestion();
+  }
+}
+
+window.pauseExam = async function() {
+  if (confirm('هل تريد إيقاف الاختبار مؤقتاً؟ يمكنك المتابعة لاحقاً من حيث توقفت.')) {
+    clearInterval(timerInterval);
+    await saveProgress();
+    document.getElementById('examScreen').classList.add('hidden');
+    document.getElementById('traineeDashboard').classList.remove('hidden');
+    await loadTests();
+  }
+}
+
+// ===== TIMER =====
+function startTimer() {
+  clearInterval(timerInterval);
+  updateTimerDisplay();
+  timerInterval = setInterval(async () => {
+    timeRemaining--;
+    updateTimerDisplay();
+    if (timeRemaining % 30 === 0) await saveProgress(); // Auto-save every 30s
+    if (timeRemaining <= 0) {
+      clearInterval(timerInterval);
+      finishExam(true);
+    }
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  const mins = Math.floor(timeRemaining / 60);
+  const secs = timeRemaining % 60;
+  const display = `${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
+  const el = document.getElementById('examTimer');
+  el.textContent = display;
+  el.className = timeRemaining <= 300 ? 'text-2xl font-bold timer-warning' : 'text-2xl font-bold text-gray-800';
+}
+
+// ===== FINISH =====
+async function finishExam(timeUp = false) {
+  clearInterval(timerInterval);
+
+  // Calculate score
+  let correct = 0;
+  currentQuestions.forEach(q => {
+    if (currentAnswers[q.id] !== undefined && currentAnswers[q.id] === q.correctAnswer) {
+      correct++;
+    }
+  });
+
+  const total = currentQuestions.length;
+  const score = Math.round((correct / total) * 100);
+  const passed = score >= (currentTest.passingScore || 70);
+  const timeTaken = Math.round((Date.now() - examStartTime) / 60000);
+
+  // Save final result to Firebase
+  const progressRef = doc(db, 'progress', currentTrainee.id + '_' + currentTest.id);
+  await setDoc(progressRef, {
+    traineeId: currentTrainee.id,
+    traineeName: currentTrainee.name,
+    traineeCode: currentTrainee.id,
+    department: currentTrainee.department || '',
+    testId: currentTest.id,
+    testTitle: currentTest.title,
+    status: 'completed',
+    score: score,
+    correctAnswers: correct,
+    wrongAnswers: total - correct,
+    totalQuestions: total,
+    passed: passed,
+    passingScore: currentTest.passingScore || 70,
+    answers: currentAnswers,
+    timeTaken: timeTaken,
+    timeUp: timeUp,
+    completedAt: serverTimestamp()
+  }, { merge: true });
+
+  // Show results
+  showResults(score, correct, total - correct, timeTaken, passed);
+}
+
+function showResults(score, correct, wrong, timeTaken, passed) {
+  document.getElementById('examScreen').classList.add('hidden');
+  document.getElementById('resultsScreen').classList.remove('hidden');
+
+  document.getElementById('resultEmoji').textContent = passed ? '🏆' : '📚';
+  document.getElementById('resultTitle').textContent = passed ? 'أحسنت! لقد نجحت' : 'لم تنجح هذه المرة';
+  document.getElementById('resultScore').textContent = score + '%';
+  document.getElementById('resultScore').className = 'text-6xl font-bold my-6 ' + (passed ? 'text-green-500' : 'text-red-500');
+  document.getElementById('correctCount').textContent = correct;
+  document.getElementById('wrongCount').textContent = wrong;
+  document.getElementById('timeTaken').textContent = timeTaken;
+  document.getElementById('resultMessage').textContent = passed ?
+    'ممتاز! سيتم إشعار المدرب بنتيجتك.' :
+    'لا تستسلم! راجع المادة وحاول مرة أخرى بعد مراجعة المدرب.';
+}
+
+window.backToDashboard = async function() {
+  document.getElementById('resultsScreen').classList.add('hidden');
+  document.getElementById('traineeDashboard').classList.remove('hidden');
+  await loadTests();
+  await loadCompletedTests();
+}
+
+// Handle URL params (from QR scan)
+const urlParams = new URLSearchParams(window.location.search);
+const qrCode = urlParams.get('code');
+if (qrCode) {
+  document.getElementById('traineeCodeInput').value = qrCode;
+  loginTrainee();
+}
+</script>
+</body>
+</html>
